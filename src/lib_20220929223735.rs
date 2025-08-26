@@ -1,7 +1,7 @@
 /*
  * @Author: Rais
  * @Date: 2022-09-29 22:37:35
- * @LastEditTime: 2025-08-22 16:27:53
+ * @LastEditTime: 2025-08-26 16:39:56
  * @LastEditors: Rais
  * @Description:
  */
@@ -1636,7 +1636,6 @@ mod tests {
         bitflags! {
            struct Flags: u8 {
                 const A = 1;
-                #[cfg(any())] // false
                 const B = 2;
             }
         }

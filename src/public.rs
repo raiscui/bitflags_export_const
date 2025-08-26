@@ -538,11 +538,6 @@ macro_rules! __impl_public_bitflags_consts {
                 name: $Flag,
                 named: {
                     $(#[$inner $($args)*])*
-                    #[cfg(any())]
-                    #[allow(
-                        deprecated,
-                        non_upper_case_globals,
-                    )]
                     pub const $Flag: $PublicBitFlags = $PublicBitFlags::$Flag;
                 },
                 unnamed: {},

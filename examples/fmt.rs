@@ -37,6 +37,7 @@ impl str::FromStr for Flags {
 
 fn main() -> Result<(), bitflags::parser::ParseError> {
     let flags = Flags::A | Flags::B;
+    const _aa: Flags = A;
 
     println!("{}", flags);
 

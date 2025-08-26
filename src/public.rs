@@ -530,6 +530,24 @@ macro_rules! __impl_public_bitflags_consts {
             )*
         }
 
+        // 额外导出模块级常量，支持 mouse::GENERAL_CLICK 这种写法。
+        // 注意：不能直接使用 `$value`，因为 `$value` 里可能包含 `Self::XXX.bits()`，
+        // 在模块级常量位置没有 `Self`。因此这里通过关联常量转发：`EventFlag::$Flag`。
+        $(
+            $crate::__bitflags_flag!({
+                name: $Flag,
+                named: {
+                    $(#[$inner $($args)*])*
+                    #[allow(
+                        deprecated,
+                        non_upper_case_globals,
+                    )]
+                    pub const $Flag: $PublicBitFlags = $PublicBitFlags::$Flag;
+                },
+                unnamed: {},
+            });
+        )*
+
         $(#[$outer])*
         impl $crate::Flags for $PublicBitFlags {
             const FLAGS: &'static [$crate::Flag<$PublicBitFlags>] = &[

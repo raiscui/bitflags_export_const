@@ -2,7 +2,7 @@
 
 use core::{fmt, str};
 
-bitflags::bitflags! {
+bitflags::bitflags_const! {
     // You can `#[derive]` the `Debug` trait, but implementing it manually
     // can produce output like `A | B` instead of `Flags(A | B)`.
     // #[derive(Debug)]
@@ -37,7 +37,7 @@ impl str::FromStr for Flags {
 
 fn main() -> Result<(), bitflags::parser::ParseError> {
     let flags = Flags::A | Flags::B;
-    const _aa: Flags = A;
+    const _AA: Flags = A;
 
     println!("{}", flags);
 

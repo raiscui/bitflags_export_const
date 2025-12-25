@@ -741,6 +741,144 @@ macro_rules! bitflags_const {
     () => {};
 }
 
+
+/// 类似 `bitflags_const!`，但不会为生成的类型实现任何 `core::ops` 位运算相关的 trait。
+/// 仅保留常量与方法，适合需要简化 API 或避免重载运算符的场景。
+#[macro_export]
+macro_rules! bitflags_const_no_ops {
+    (
+        $(#[$outer:meta])*
+        $vis:vis struct $BitFlags:ident: $T:ty {
+            $(
+                $(#[$inner:ident $($args:tt)*])*
+                const $Flag:tt = $value:expr;
+            )*
+        }
+
+        $($t:tt)*
+    ) => {
+        // 用户可见的新类型声明
+        $crate::__declare_public_bitflags! {
+            $(#[$outer])*
+            $vis struct $BitFlags
+        }
+
+        // 导出关联常量与模块级常量，保持与 `bitflags_const!` 一致的可访问性
+        $crate::__impl_public_bitflags_crate_consts! {
+            $BitFlags: $T {
+                $(
+                    $(#[$inner $($args)*])*
+                    const $Flag = $value;
+                )*
+            }
+        }
+
+        #[allow(
+            dead_code,
+            deprecated,
+            unused_doc_comments,
+            unused_attributes,
+            unused_mut,
+            unused_imports,
+            non_upper_case_globals,
+            clippy::assign_op_pattern,
+            clippy::indexing_slicing,
+            clippy::same_name_method,
+            clippy::iter_without_into_iter,
+        )]
+        const _: () = {
+            // 内部类型与外部库适配依然保留，便于复用内部实现
+            $crate::__declare_internal_bitflags! {
+                $vis struct InternalBitFlags: $T
+            }
+
+            $crate::__impl_internal_bitflags! {
+                InternalBitFlags: $T, $BitFlags {
+                    $(
+                        $(#[$inner $($args)*])*
+                        const $Flag = $value;
+                    )*
+                }
+            }
+
+            $crate::__impl_external_bitflags! {
+                InternalBitFlags: $T, $BitFlags {
+                    $(
+                        $(#[$inner $($args)*])*
+                        const $Flag;
+                    )*
+                }
+            }
+
+            // 仅转发核心方法，不注入任何 `core::ops` 运算符重载
+            $crate::__impl_public_bitflags_forward! {
+                $BitFlags: $T, InternalBitFlags
+            }
+
+            $crate::__impl_public_bitflags_iter! {
+                $BitFlags: $T, $BitFlags
+            }
+        };
+
+        $crate::bitflags_const_no_ops! {
+            $($t)*
+        }
+    };
+    (
+        $(#[$outer:meta])*
+        impl $BitFlags:ident: $T:ty {
+            $(
+                $(#[$inner:ident $($args:tt)*])*
+                const $Flag:tt = $value:expr;
+            )*
+        }
+
+        $($t:tt)*
+    ) => {
+        $crate::__impl_public_bitflags_consts! {
+            $BitFlags: $T {
+                $(
+                    $(#[$inner $($args)*])*
+                    const $Flag = $value;
+                )*
+            }
+        }
+
+        #[allow(
+            dead_code,
+            deprecated,
+            unused_doc_comments,
+            unused_attributes,
+            unused_mut,
+            unused_imports,
+            non_upper_case_globals,
+            clippy::assign_op_pattern,
+            clippy::iter_without_into_iter,
+        )]
+        const _: () = {
+            $crate::__impl_public_bitflags! {
+                $(#[$outer])*
+                $BitFlags: $T, $BitFlags {
+                    $(
+                        $(#[$inner $($args)*])*
+                        const $Flag = $value;
+                    )*
+                }
+            }
+
+            // 不包含运算符重载，仅保留迭代等辅助功能
+            $crate::__impl_public_bitflags_iter! {
+                $BitFlags: $T, $BitFlags
+            }
+        };
+
+        $crate::bitflags_const_no_ops! {
+            $($t)*
+        }
+    };
+    () => {};
+}
+
 /// Implement functions on bitflags types.
 ///
 /// We need to be careful about adding new methods and trait implementations here because they

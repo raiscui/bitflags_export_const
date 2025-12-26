@@ -1,13 +1,13 @@
 //! Specialized serialization for flags types using `serde`.
 
 use crate::{
-    parser::{self, ParseHex, WriteHex},
     Flags,
+    parser::{self, ParseHex, WriteHex},
 };
 use core::{fmt, str};
 use serde::{
-    de::{Error, Visitor},
     Deserialize, Deserializer, Serialize, Serializer,
+    de::{Error, Visitor},
 };
 
 /**
@@ -68,7 +68,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use serde_test::{assert_tokens, Configure, Token::*};
+    use serde_test::{Configure, Token::*, assert_tokens};
     bitflags! {
         #[derive(serde_derive::Serialize, serde_derive::Deserialize, Debug, PartialEq, Eq)]
         #[serde(transparent)]

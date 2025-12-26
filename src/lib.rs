@@ -608,6 +608,186 @@ macro_rules! bitflags_const {
             )*
         }
 
+        identify_base = $base:expr;
+
+        $($t:tt)*
+    ) => {
+        // Declared in the scope of the `bitflags!` call
+        // 仅导出关联常量，模块级常量将由下方 EventIdentify 生成
+        $crate::__declare_public_bitflags! {
+            $(#[$outer])*
+            $vis struct $BitFlags
+        }
+
+        $crate::__impl_public_bitflags_consts! {
+            $BitFlags: $T {
+                $(
+                    $(#[$inner $($args)*])*
+                    const $Flag = $value;
+                )*
+            }
+        }
+
+        #[allow(
+            dead_code,
+            deprecated,
+            unused_doc_comments,
+            unused_attributes,
+            unused_mut,
+            unused_imports,
+            non_upper_case_globals,
+            clippy::assign_op_pattern,
+            clippy::indexing_slicing,
+            clippy::same_name_method,
+            clippy::iter_without_into_iter,
+        )]
+        const _: () = {
+            // Declared in a "hidden" scope that can't be reached directly
+            // These types don't appear in the end-user's API
+            $crate::__declare_internal_bitflags! {
+                $vis struct InternalBitFlags: $T
+            }
+
+            $crate::__impl_internal_bitflags! {
+                InternalBitFlags: $T, $BitFlags {
+                    $(
+                        $(#[$inner $($args)*])*
+                        const $Flag = $value;
+                    )*
+                }
+            }
+
+            // This is where new library trait implementations can be added
+            $crate::__impl_external_bitflags! {
+                InternalBitFlags: $T, $BitFlags {
+                    $(
+                        $(#[$inner $($args)*])*
+                        const $Flag;
+                    )*
+                }
+            }
+
+            $crate::__impl_public_bitflags_forward! {
+                $BitFlags: $T, InternalBitFlags
+            }
+
+            $crate::__impl_public_bitflags_ops! {
+                $BitFlags
+            }
+
+            $crate::__impl_public_bitflags_iter! {
+                $BitFlags: $T, $BitFlags
+            }
+        };
+
+        // 根据调用方提供的顶层事件 flag（如 event::DND / event::MOUSE），生成模块级 EventIdentify 常量。
+        $(
+            pub const $Flag: EventIdentify = EventIdentify($base.bits(), $BitFlags::$Flag.bits());
+        )*
+
+        $crate::bitflags_const! {
+            $($t)*
+        }
+    };
+    (
+        $(#[$outer:meta])*
+        $vis:vis struct $BitFlags:ident: $T:ty {
+            $(
+                $(#[$inner:ident $($args:tt)*])*
+                const $Flag:tt = $value:expr;
+            )*
+        }
+
+        crate_consts {
+            $($user_consts:tt)*
+        }
+
+        $($t:tt)*
+    ) => {
+        // Declared in the scope of the `bitflags!` call
+        // 仅导出关联常量，避免与自定义模块级常量冲突
+        $crate::__declare_public_bitflags! {
+            $(#[$outer])*
+            $vis struct $BitFlags
+        }
+
+        $crate::__impl_public_bitflags_consts! {
+            $BitFlags: $T {
+                $(
+                    $(#[$inner $($args)*])*
+                    const $Flag = $value;
+                )*
+            }
+        }
+
+        #[allow(
+            dead_code,
+            deprecated,
+            unused_doc_comments,
+            unused_attributes,
+            unused_mut,
+            unused_imports,
+            non_upper_case_globals,
+            clippy::assign_op_pattern,
+            clippy::indexing_slicing,
+            clippy::same_name_method,
+            clippy::iter_without_into_iter,
+        )]
+        const _: () = {
+            // Declared in a "hidden" scope that can't be reached directly
+            // These types don't appear in the end-user's API
+            $crate::__declare_internal_bitflags! {
+                $vis struct InternalBitFlags: $T
+            }
+
+            $crate::__impl_internal_bitflags! {
+                InternalBitFlags: $T, $BitFlags {
+                    $(
+                        $(#[$inner $($args)*])*
+                        const $Flag = $value;
+                    )*
+                }
+            }
+
+            // This is where new library trait implementations can be added
+            $crate::__impl_external_bitflags! {
+                InternalBitFlags: $T, $BitFlags {
+                    $(
+                        $(#[$inner $($args)*])*
+                        const $Flag;
+                    )*
+                }
+            }
+
+            $crate::__impl_public_bitflags_forward! {
+                $BitFlags: $T, InternalBitFlags
+            }
+
+            $crate::__impl_public_bitflags_ops! {
+                $BitFlags
+            }
+
+            $crate::__impl_public_bitflags_iter! {
+                $BitFlags: $T, $BitFlags
+            }
+        };
+
+        // 使用调用方自定义的模块级常量，适配跨模块标识符（如 EventIdentify）
+        $($user_consts)*
+
+        $crate::bitflags_const! {
+            $($t)*
+        }
+    };
+    (
+        $(#[$outer:meta])*
+        $vis:vis struct $BitFlags:ident: $T:ty {
+            $(
+                $(#[$inner:ident $($args:tt)*])*
+                const $Flag:tt = $value:expr;
+            )*
+        }
+
         $($t:tt)*
     ) => {
         // Declared in the scope of the `bitflags!` call
@@ -740,7 +920,6 @@ macro_rules! bitflags_const {
     };
     () => {};
 }
-
 
 /// 类似 `bitflags_const!`，但不会为生成的类型实现任何 `core::ops` 位运算相关的 trait。
 /// 仅保留常量与方法，适合需要简化 API 或避免重载运算符的场景。

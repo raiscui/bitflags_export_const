@@ -1,6 +1,6 @@
 use super::*;
 
-use crate::{Flags, parser::*};
+use crate::{parser::*, Flags};
 
 #[test]
 #[cfg(not(miri))] // Very slow in miri
@@ -101,31 +101,23 @@ mod from_str {
 
     #[test]
     fn invalid() {
-        assert!(
-            from_str::<TestFlags>("a")
-                .unwrap_err()
-                .to_string()
-                .starts_with("unrecognized named flag")
-        );
-        assert!(
-            from_str::<TestFlags>("A & B")
-                .unwrap_err()
-                .to_string()
-                .starts_with("unrecognized named flag")
-        );
+        assert!(from_str::<TestFlags>("a")
+            .unwrap_err()
+            .to_string()
+            .starts_with("unrecognized named flag"));
+        assert!(from_str::<TestFlags>("A & B")
+            .unwrap_err()
+            .to_string()
+            .starts_with("unrecognized named flag"));
 
-        assert!(
-            from_str::<TestFlags>("0xg")
-                .unwrap_err()
-                .to_string()
-                .starts_with("invalid hex flag")
-        );
-        assert!(
-            from_str::<TestFlags>("0xffffffffffff")
-                .unwrap_err()
-                .to_string()
-                .starts_with("invalid hex flag")
-        );
+        assert!(from_str::<TestFlags>("0xg")
+            .unwrap_err()
+            .to_string()
+            .starts_with("invalid hex flag"));
+        assert!(from_str::<TestFlags>("0xffffffffffff")
+            .unwrap_err()
+            .to_string()
+            .starts_with("invalid hex flag"));
     }
 }
 
@@ -277,37 +269,27 @@ mod from_str_strict {
 
     #[test]
     fn invalid() {
-        assert!(
-            from_str_strict::<TestFlags>("a")
-                .unwrap_err()
-                .to_string()
-                .starts_with("unrecognized named flag")
-        );
-        assert!(
-            from_str_strict::<TestFlags>("A & B")
-                .unwrap_err()
-                .to_string()
-                .starts_with("unrecognized named flag")
-        );
+        assert!(from_str_strict::<TestFlags>("a")
+            .unwrap_err()
+            .to_string()
+            .starts_with("unrecognized named flag"));
+        assert!(from_str_strict::<TestFlags>("A & B")
+            .unwrap_err()
+            .to_string()
+            .starts_with("unrecognized named flag"));
 
-        assert!(
-            from_str_strict::<TestFlags>("0x1")
-                .unwrap_err()
-                .to_string()
-                .starts_with("invalid hex flag")
-        );
-        assert!(
-            from_str_strict::<TestFlags>("0xg")
-                .unwrap_err()
-                .to_string()
-                .starts_with("invalid hex flag")
-        );
-        assert!(
-            from_str_strict::<TestFlags>("0xffffffffffff")
-                .unwrap_err()
-                .to_string()
-                .starts_with("invalid hex flag")
-        );
+        assert!(from_str_strict::<TestFlags>("0x1")
+            .unwrap_err()
+            .to_string()
+            .starts_with("invalid hex flag"));
+        assert!(from_str_strict::<TestFlags>("0xg")
+            .unwrap_err()
+            .to_string()
+            .starts_with("invalid hex flag"));
+        assert!(from_str_strict::<TestFlags>("0xffffffffffff")
+            .unwrap_err()
+            .to_string()
+            .starts_with("invalid hex flag"));
     }
 }
 
